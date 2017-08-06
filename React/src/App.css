@@ -1,0 +1,44 @@
+
+/*   CARD CHANGES   */
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+.card-content {
+    padding-bottom: 0px !important;
+    padding-top: 10px !important;
+}
+
+.card-action {
+    padding-bottom: 10px !important;
+    padding-top: 10px !important;
+}
+
+.card-content p {
+    padding-bottom: 5px;
+}
+
+.card-icon {
+    vertical-align: middle;
+    margin-bottom: 5px;
+    width: 30px;
+}
+
+.star-rate {
+    color: goldenrod;
+}
+
+
+/*   FILTER CHANGES   */
+
+.filter-icon {
+    padding-right: 5px;
+}
+
+
+
+.btn.linked-in {
+    background-color: #0077B5;
+}

@@ -1,0 +1,35 @@
+body h1 {
+    font-size: 225%;
+}
+
+body h2 {
+    font-size: 180%;
+}
+
+body h3 {
+    font-size: 150%;
+}
+
+
+/*  BREADCRUMBS - navigation  */
+
+img .active {
+    max-width: 1000px !important;
+}
+
+
+/*  BREADCRUMBS - navigation  */
+
+.nav-breadcrumbs .breadcrumb:before {
+    vertical-align: middle;
+    color: #4db6ac;
+    margin-bottom: 3px;
+}
+
+
+/*  FORM INFORMATIVE TEXT - Sign showing required fields in a form  */
+
+.informative-font-size {
+    font-size: 85%;
+}
+
