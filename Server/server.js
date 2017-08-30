@@ -13,57 +13,6 @@ const Provider = require('./model/providers');
 const Review = require('./model/reviews');
 const filter = require('content-filter')
 
-//var request = require("request");
-//var manToken = '';
-//var options = { method: 'POST',
-//  url: 
-//  headers: { 'content-type': 'application/json' },
-//  body: 
-//   { grant_type: 'client_credentials',
-//     client_id: 
-//     client_secret: 
-//     audience: 
-//  json: true };
-//
-//request(options, function (error, response, body) {
-//  if (error) throw new Error(error);
-//  
-//  manToken = response;
-//  console.log(body);
-//});
-//
-//var ManagementClient = require('auth0').ManagementClient;
-//var management = new ManagementClient({
-//  token: response.accessToken,
-//  domain: process.env.AUTH0_DOMAIN
-//});
-//
-//var AuthenticationClient = require('auth0').AuthenticationClient;
-//
-//var auth0 = new AuthenticationClient({
-//  domain: process.env.AUTH0_DOMAIN,
-//  clientId: 
-//  clientSecret: 
-//});
-//
-//auth0.clientCredentialsGrant({
-//  audience: 'https://' + process.env.AUTH0_DOMAIN + '/api/v2/',
-//  scope: 'read:users'
-//}, function (err, response) {
-//  if (err) {
-//    // Handle error.
-//  }
-//  console.log(response.access_token);
-//});
-//
-//auth0.getUsers(function (err, users) {
-//  if (err) {
-//    // handle error.
-//  }
-//  console.log(users);
-//  res.json({users});
-//});
-
 
 require('dotenv').config();
 
@@ -110,7 +59,7 @@ app.use(function(req, res, next) {
  res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS,POST,PUT,DELETE');
  res.setHeader('Access-Control-Allow-Headers', 'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers');
 
-//and remove cacheing so we get the most recent comments
+//and remove cacheing so we get the most recent items
  res.setHeader('Cache-Control', 'no-cache');
  next();
 });
@@ -130,9 +79,11 @@ router.get('/', function(req, res) {
 //}
 
 
+// creates a new IT service provider
 router.route('/providers')
 .post(checkJwt, checkScopes, function(req, res) {
     var provider = new Provider();
+  
     //body parser lets us use the req.body
     provider.name = req.body.name;
     provider.img = req.body.img;
@@ -147,30 +98,34 @@ router.route('/providers')
     });
 });
 
+
+// skips certain amount of providers based on the pagination and returns 10 providers
 router.route('/providers/:skip')
 .get(checkJwt, checkScopes, function(req, res) {
     var query = Provider.find().skip(parseInt(escape(req.params.skip)) * 10).limit(10); 
     query.exec(function(err, providers) {
         if (err)
             res.send(err);
-        //responds with a json object of our database comments.
 
         res.json(providers);
     });
 });
 
+
+// skips certain amount of providers based on the pagination and returns 10 providers whose names match a given string
 router.route('/providers/:skip/:text')
 .get(checkJwt, checkScopes, function(req, res) {
     var query = Provider.find({name: {$regex : req.params.text, $options : 'i' }}).skip(parseInt(escape(req.params.skip)) * 10).limit(10); 
     query.exec(function(err, providers) {
         if (err)
             res.send(err);
-        //responds with a json object of our database comments.
-
+      
         res.json(providers);
     });
 });
 
+
+// returns provider names that match a given string
 router.route('/providersNames/:text')
 .get(checkJwt, checkScopes, function(req, res) {
     Provider.aggregate( [ 
@@ -187,17 +142,20 @@ router.route('/providersNames/:text')
     });
 });
 
+
+// returns the count of existing providers
 router.route('/providersCount')
 .get(checkJwt, checkScopes, function(req, res) {
     Provider.count(function(err, providers) {
         if (err)
             res.send(err);
-        //responds with a json object of our database comments.
-
+      
         res.json(providers);
     });
 });
 
+
+// returns the count of providers whose names match a given string
 router.route('/providersCount/:text')
 .get(checkJwt, checkScopes, function(req, res) {
     Provider.aggregate( [ 
@@ -212,24 +170,24 @@ router.route('/providersCount/:text')
     });
 });
 
-//Adding a route to a specific provider based on the database ID
+
 router.route('/provider/:provider_id')
-    //The put method gives us provider based on 
-    //the ID passed to the route
+// returns a provider based on his ID
 .get(checkJwt, checkScopes, function(req, res) {
     Provider.findById(escape(req.params.provider_id), function(err, provider) {
         if (err)
             res.send(err);
         
-        //responds with a json object of our database provider.
         res.json(provider);
     });
-}).put(checkJwt, checkScopes, function(req, res) {
+})
+// updates the providers information
+.put(checkJwt, checkScopes, function(req, res) {
     Provider.findById(escape(req.params.provider_id), function(err, provider) {
         if (err)
             res.send(err);
 
-        //If nothing was changed we will not alter the field.
+        // if nothing was changed, we will not alter the field
         (req.body.name) ? provider.name = req.body.name : null;
         (req.body.img) ? provider.img = req.body.img : null;
         (req.body.description) ? provider.description = req.body.description : null;
@@ -238,7 +196,8 @@ router.route('/provider/:provider_id')
         (req.body.address) ? provider.address = req.body.address : null;
         (req.body.rating) ? provider.rating = req.body.rating : null;
         (req.body.rating === 0) ? provider.rating = req.body.rating : null;
-        //save provider
+      
+        // save provider
         provider.save(function(err) {
             if (err)
                 res.send(err);
@@ -247,6 +206,8 @@ router.route('/provider/:provider_id')
     });
 });
 
+
+// returns all reviews that a certain user submitted
 router.route('/userReviews/:user_id')
 .get(checkJwt, checkScopes, function(req, res) {
     Review.find({user_id: req.params.user_id}, function(err, review) {
@@ -257,7 +218,9 @@ router.route('/userReviews/:user_id')
     });
 });
 
+
 router.route('/review/:review_id')
+// returns a review based on its ID
 .get(checkJwt, checkScopes, function(req, res) {
     Review.findById(escape(req.params.review_id), function(err, review) {
         if (err)
@@ -265,25 +228,30 @@ router.route('/review/:review_id')
         
         res.json(review);
     });
-}).put(checkJwt, checkScopes, function(req, res) {
+})
+// updates review information
+.put(checkJwt, checkScopes, function(req, res) {
     Review.findById(escape(req.params.review_id), function(err, review) {
         if (err)
             res.send(err);
 
-        //If nothing was changed we will not alter the field.
+        // if nothing was changed, we will not alter the field
         (req.body.providerRating) ? review.providerRating = req.body.providerRating : null;
         (req.body.serviceType) ? review.serviceType = req.body.serviceType : null;
         (req.body.serviceRating) ? review.serviceRating = req.body.serviceRating : null;
         (req.body.comment) ? review.comment = req.body.comment : null;
         (req.body.satisfaction) ? review.satisfaction = req.body.satisfaction : null;
-        //save provider
+      
+        // save review
         review.save(function(err) {
             if (err)
                 res.send(err);
             res.json({ message: 'Review has been updated' });
         });
     });
-}).delete(checkJwt, checkScopes, function(req, res) {
+})
+// deletes a review  
+.delete(checkJwt, checkScopes, function(req, res) {
     Review.remove({ _id: escape(req.params.review_id) }, function(err, review) {
         if (err)
             res.send(err);
@@ -292,8 +260,10 @@ router.route('/review/:review_id')
     });
 });
 
-//It is significantly faster to use find() + limit() because findOne() will always read + return the document if it exists. 
+
+// It is significantly faster to use find() + limit() because findOne() will always read + return the document if it exists. 
 router.route('/reviews/:provider_id')
+// returns all reviews concerning a certain provider
 .get(checkJwt, checkScopes, function(req, res) {
     Review.find({provider_id: escape(req.params.provider_id)}, function(err, review) {
         if (err)
@@ -301,8 +271,11 @@ router.route('/reviews/:provider_id')
         
         res.json(review);
     });
-}).post(checkJwt, checkScopes, function(req, res) {
+})
+// creates a new review concerning a certain provider
+.post(checkJwt, checkScopes, function(req, res) {
     var review = new Review();
+  
     //body parser lets us use the req.body
     review.user_id = req.body.user_id;
     review.provider_id = req.body.provider_id;
@@ -318,6 +291,8 @@ router.route('/reviews/:provider_id')
     });
 });
 
+
+// calculates and returns the total average of each of the reviews ratings
 router.route('/reviews-aggregate/:provider_id')
 .get(checkJwt, checkScopes, function(req, res) {
     Review.aggregate( [ 
